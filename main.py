@@ -27,15 +27,21 @@ from shapely.geometry import Polygon
 import matplotlib.pyplot as plt
 from pyproj import CRS
 from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.lines as mlines
+import matplotlib.ticker as ticker
 import seaborn as sns
 from collections import Counter
 import re
 
-plt.rcParams['font.family'] = 'NanumGothic'
-plt.rcParams['font.size'] = 12
+from matplotlib import font_manager, rc
+plt.rc('font', family='NanumGothic')
+print(plt.rcParams['font.family'])
 
 # Set the max_columns option to None
 pd.set_option('display.max_columns', None)
+
+import matplotlib.pyplot as plt
+plt.rcParams['font.family'] = 'Malgun Gothic'
 
 
 ##################################################
@@ -196,3 +202,58 @@ counts = joined.groupby('index_right').size()
 for index, count in counts.items():
     polygon_name = subsetMiddle.loc[index, 'HAKGUDO_NM']
     print(f"Polygon '{polygon_name}' has {count} points.")
+
+
+
+# Create a new plot
+fig, ax = plt.subplots(figsize=(10, 10))
+
+'''
+# Plot shapefile A
+subsetMiddle.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=2, label='Middle School Districts')
+
+# Plot shapefile B
+subset.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=1, linestyle='dotted', label='Elementary School Districts')
+'''
+
+# Plot shapefile A
+subsetMiddle.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=2, label='중학교 학군')
+line_A = mlines.Line2D([], [], color='black', linewidth=2, label='Shapefile A (Bold Line)')
+
+# Plot shapefile B
+subset.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=1, linestyle='dotted', label='초등학교 학군')
+line_B = mlines.Line2D([], [], color='black', linewidth=1, linestyle='dotted', label='Shapefile B (Dotted Line)')
+
+# Set the aspect ratio to 'equal' for a proper spatial representation
+ax.set_aspect('equal')
+
+# Format tick labels
+ax.xaxis.set_major_formatter(ticker.StrMethodFormatter('{x:.4f}'))
+ax.yaxis.set_major_formatter(ticker.StrMethodFormatter('{x:.4f}'))
+
+# Remove tick labels
+ax.set_xticklabels([])
+ax.set_yticklabels([])
+
+# Create custom legend handles
+handles = [line_A, line_B]
+labels = ['중학교 학군', '초등학교 학군']
+
+# Set labels for custom legend handles
+for handle, label in zip(handles, labels):
+    handle.set_label(label)
+
+# Add legend
+plt.legend(handles=handles)
+
+# Add any additional customization as needed (title, legend, etc.)
+ax.set_title('Middle and Elementary School Districts of Seoul')
+
+# Specify the file path for saving the figure
+file_path = os.path.join(base_path, 'schoolDistricts(MiddleElementarySchool.png')
+
+# Save the figure
+plt.savefig(file_path)
+
+# Display the plot
+plt.show()
