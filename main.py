@@ -87,11 +87,13 @@ merged_df.loc[merged_df['학교명'] == '솔샘중학교', '위도'] = '37.62365
 merged_df.loc[merged_df['학교명'] == '솔샘중학교', '경도'] = '127.0122142'
 merged_df.loc[merged_df['학교명'] == '동성중학교', '위도'] = '37.5852449'
 merged_df.loc[merged_df['학교명'] == '동성중학교', '경도'] = '127.0024442'
+merged_df.loc[merged_df['학교명'] == '동성중학교', '위도'] = '37.49124'
+merged_df.loc[merged_df['학교명'] == '개원중학교', '경도'] = '127.071435'
+
 
 file_path = os.path.join(base_path + '/engineered_data', 'merged_df_with_coordinates(MiddleSchool).csv')
 merged_df.to_csv(file_path, index=False, encoding='utf-8')
 # merged_df.to_csv('merged_df_with_coordinates.csv', index=False, encoding='cp949')
-
 
 # read middle school district shp file and check distribution
 file_name = "data/middleSchoolDistrict/중학교학교군.shp"
@@ -101,10 +103,11 @@ shapefileMiddle = gpd.read_file(file_path)
 
 columns_to_drop = ['CRE_DT', 'UPD_DT', 'BASE_DT']
 shapefileMiddle_subset = shapefileMiddle.drop(columns_to_drop, axis=1)
-print(shapefileMiddle_subset.columns)
+# print(shapefileMiddle_subset.columns)
 subsetMiddle = shapefileMiddle_subset[shapefileMiddle_subset['EDU_UP_NM'] == "서울특별시교육청"]
-print(subsetMiddle.shape)
-print(len(subsetMiddle['HAKGUDO_NM']))
+# print(subsetMiddle.shape)
+# print(len(subsetMiddle['HAKGUDO_NM']))
+
 
 # convert merged_df_with_coordinates to a GeoDataFrame
 points = gpd.GeoDataFrame(merged_df,
@@ -130,8 +133,8 @@ counts = joined.groupby('index_right').size()
 for index, count in counts.items():
     polygon_name = subsetMiddle.loc[index, 'HAKGUDO_NM']
     print(f"Polygon '{polygon_name}' has {count} points.")
-#
-#
+
+
 # ##################################################
 # # plot points and polygon (simple overlay)
 #
@@ -153,10 +156,9 @@ for index, count in counts.items():
 # print(multi_point_polygons)
 
 
-
+'''
 ##################################################
 # ElementarySchool: open files
-
 file_name = "engineered_data/merged_df_with_coordinates.csv"
 file_path = os.path.join(base_path, file_name)
 merged_df = pd.read_csv(file_path, encoding='utf-8')
@@ -198,15 +200,16 @@ joined = gpd.sjoin(points, polygons, op='within')
 # count the number of points for each polygon
 counts = joined.groupby('index_right').size()
 
-# print the number of points in each polygon
+# print the number of points(elementary school) in each polygon
 for index, count in counts.items():
     polygon_name = subsetMiddle.loc[index, 'HAKGUDO_NM']
     print(f"Polygon '{polygon_name}' has {count} points.")
 
 
-
 # Create a new plot
 fig, ax = plt.subplots(figsize=(10, 10))
+'''
+
 
 '''
 # Plot shapefile A
@@ -215,7 +218,8 @@ subsetMiddle.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=2, label
 # Plot shapefile B
 subset.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=1, linestyle='dotted', label='Elementary School Districts')
 '''
-
+'''
+# 지도: 중학교 학교군 + 초등학교 학교군
 # Plot shapefile A
 subsetMiddle.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=2, label='중학교 학군')
 line_A = mlines.Line2D([], [], color='black', linewidth=2, label='Shapefile A (Bold Line)')
@@ -257,3 +261,183 @@ plt.savefig(file_path)
 
 # Display the plot
 plt.show()
+'''
+
+
+# read high school district shp file and check distribution
+file_name = "data/highSchoolDistrict/고등학교학교군.shp"
+file_path = os.path.join(base_path, file_name)
+shapefileHigh = gpd.read_file(file_path)
+# print(shapefileMiddle.columns)
+
+columns_to_drop = ['CRE_DT', 'UPD_DT', 'BASE_DT']
+shapefileHigh_subset = shapefileHigh.drop(columns_to_drop, axis=1)
+# print(shapefileHigh_subset.columns)
+subsetHigh = shapefileHigh_subset[shapefileHigh_subset['EDU_UP_NM'] == "서울특별시교육청"]
+# print(subsetHigh.shape)
+# print(len(subsetHigh['HAKGUDO_NM']))
+
+
+
+# 지도: 고등학교 학교군 + 초등학교 학교군
+# Plot shapefile A
+subsetHigh.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=2, label='고등학교 학군')
+line_A = mlines.Line2D([], [], color='black', linewidth=2, label='Shapefile A (Bold Line)')
+
+# Plot shapefile B
+subset.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=1, linestyle='dotted', label='초등학교 학군')
+line_B = mlines.Line2D([], [], color='black', linewidth=1, linestyle='dotted', label='Shapefile B (Dotted Line)')
+
+# Set the aspect ratio to 'equal' for a proper spatial representation
+ax.set_aspect('equal')
+
+# Format tick labels
+ax.xaxis.set_major_formatter(ticker.StrMethodFormatter('{x:.4f}'))
+ax.yaxis.set_major_formatter(ticker.StrMethodFormatter('{x:.4f}'))
+
+# Remove tick labels
+ax.set_xticklabels([])
+ax.set_yticklabels([])
+
+# Create custom legend handles
+handles = [line_A, line_B]
+labels = ['고등학교 학군', '초등학교 학군']
+
+# Set labels for custom legend handles
+for handle, label in zip(handles, labels):
+    handle.set_label(label)
+
+# Add legend
+plt.legend(handles=handles)
+
+# Add any additional customization as needed (title, legend, etc.)
+ax.set_title('High and Elementary School Districts of Seoul')
+
+# Specify the file path for saving the figure
+file_path = os.path.join(base_path, 'schoolDistricts(HighElementarySchool.png')
+
+# Save the figure
+plt.savefig(file_path)
+
+# Display the plot
+plt.show()
+
+
+# convert subset to a GeoDataFrame
+polygons = gpd.GeoDataFrame(subsetHigh)
+
+# reproject points to match the CRS of polygons
+points = points.to_crs(polygons.crs)
+
+# perform spatial join
+joined = gpd.sjoin(points, polygons, op='within')
+
+# count the number of points for each polygon
+counts = joined.groupby('index_right').size()
+
+# print the number of points(elementary school) in each polygon
+for index, count in counts.items():
+    polygon_name = subsetHigh.loc[index, 'HAKGUDO_NM']
+    print(f"Polygon '{polygon_name}' has {count} points.")
+
+
+
+# 지도: 고등학교 학교군 + 중학교 학교군
+# Plot shapefile A
+subsetHigh.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=2, label='고등학교 학군')
+line_A = mlines.Line2D([], [], color='black', linewidth=2, label='Shapefile A (Bold Line)')
+
+# Plot shapefile B
+subsetMiddle.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=1, linestyle='dotted', label='중학교 학군')
+line_B = mlines.Line2D([], [], color='black', linewidth=1, linestyle='dotted', label='Shapefile B (Dotted Line)')
+
+# Set the aspect ratio to 'equal' for a proper spatial representation
+ax.set_aspect('equal')
+
+# Format tick labels
+ax.xaxis.set_major_formatter(ticker.StrMethodFormatter('{x:.4f}'))
+ax.yaxis.set_major_formatter(ticker.StrMethodFormatter('{x:.4f}'))
+
+# Remove tick labels
+ax.set_xticklabels([])
+ax.set_yticklabels([])
+
+# Create custom legend handles
+handles = [line_A, line_B]
+labels = ['고등학교 학군', '중학교 학군']
+
+# Set labels for custom legend handles
+for handle, label in zip(handles, labels):
+    handle.set_label(label)
+
+# Add legend
+plt.legend(handles=handles)
+
+# Add any additional customization as needed (title, legend, etc.)
+ax.set_title('High and Middle School Districts of Seoul')
+
+# Specify the file path for saving the figure
+file_path = os.path.join(base_path, 'schoolDistricts(HighMiddleSchool.png')
+
+# Save the figure
+plt.savefig(file_path)
+
+# Display the plot
+plt.show()
+
+
+# convert subset to a GeoDataFrame
+polygons = gpd.GeoDataFrame(subsetHigh)
+
+# reproject points to match the CRS of polygons
+points = points.to_crs(polygons.crs)
+
+# perform spatial join
+joined = gpd.sjoin(points, polygons, op='within')
+
+# count the number of points for each polygon
+counts = joined.groupby('index_right').size()
+
+# print the number of points(elementary school) in each polygon
+for index, count in counts.items():
+    polygon_name = subsetHigh.loc[index, 'HAKGUDO_NM']
+    print(f"Polygon '{polygon_name}' has {count} points.")
+
+
+
+# middle school
+# MiddleSchool: open files(합치기 필요)
+file_name = "engineered_data/merged_df_with_coordinates(MiddleSchool).csv"
+file_path = os.path.join(base_path, file_name)
+middleSchool = pd.read_csv(file_path, encoding='utf-8')
+# for col in middleSchool .columns:
+#     print(col)
+
+middleSchoolSubset = middleSchool[middleSchool['설립구분'] == '공립']
+print(middleSchoolSubset['남녀공학 구분'].unique())
+middleSchoolSubset = middleSchoolSubset[middleSchoolSubset['남녀공학 구분'] == '남녀공학']
+
+# convert merged_df_with_coordinates to a GeoDataFrame
+points = gpd.GeoDataFrame(middleSchoolSubset,
+                          geometry=gpd.points_from_xy(middleSchoolSubset['경도'],
+                                                      middleSchoolSubset['위도']))
+
+# infer CRS from latitude and longitude columns using pyproj
+points.crs = CRS.from_user_input('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs').to_wkt()
+
+# convert subset to a GeoDataFrame
+polygons = gpd.GeoDataFrame(subsetHigh)
+
+# reproject points to match the CRS of polygons
+points = points.to_crs(polygons.crs)
+
+# perform spatial join
+joined = gpd.sjoin(points, polygons, op='within')
+
+# count the number of points for each polygon
+counts = joined.groupby('index_right').size()
+
+# print the number of points(elementary school) in each polygon
+for index, count in counts.items():
+    polygon_name = subsetHigh.loc[index, 'HAKGUDO_NM']
+    print(f"Polygon '{polygon_name}' has {count} points.")
